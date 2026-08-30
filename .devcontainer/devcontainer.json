@@ -1,0 +1,15 @@
+{
+  "name": "Local RAG Lab",
+  "build": { "dockerfile": "Dockerfile" },
+  "customizations": {
+    "vscode": {
+      "extensions": [
+        "ms-python.python",
+        "ms-toolsai.jupyter",
+        "anthropic.claude-code",
+        "eamodio.gitlens"
+      ]
+    }
+  },
+  "postCreateCommand": "git config --system --add safe.directory '*' && pip install -r requirements.txt"
+}
