@@ -11,5 +11,11 @@
       ]
     }
   },
-  "postCreateCommand": "git config --system --add safe.directory '*' && pip install -r requirements.txt"
+  "mounts": [
+    "source=claude-code-volume,target=/root/.claude,type=volume"
+  ],
+  "containerEnv": {
+    "CLAUDE_CONFIG_DIR": "/root/.claude"
+  },
+  "postCreateCommand": "git config --system --add safe.directory '*' && ln -sf /root/.claude/.claude.json /root/.claude.json && pip install -r requirements.txt"
 }
