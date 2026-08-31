@@ -2,8 +2,12 @@ import numpy as np
 import ollama
 from sentence_transformers import SentenceTransformer
 
-print("日本語対応Embeddingモデルを読み込み中...")
-embed_model = SentenceTransformer("sentence-transformers/paraphrase-multilingual-MiniLM-L12-v2")
+# 記事スタイル: 多言語 e5 モデル + passage:/query: プレフィックス + 正規化済みベクトル
+# ※ e5 系は文書に "passage: "、クエリに "query: " を付けるのが必須
+EMBED_MODEL_NAME = "intfloat/multilingual-e5-base"
+
+print(f"Embedding モデルを読み込み中... ({EMBED_MODEL_NAME})")
+embed_model = SentenceTransformer(EMBED_MODEL_NAME)
 
 # 意図的に似た単語（手当・リモート・申請・費用など）を散りばめたナレッジベース
 knowledge_base = [
@@ -20,24 +24,24 @@ knowledge_base = [
 
     # 紛らわしい申請・ルール関連
     "有給休暇の取得申請は、希望日の3営業日前までに社内ポータルから提出してください。",
-    "健康診断の再検査費用は、上限10,000円まで会社が負担します（領収書の提出が必要）。"
+    "健康診断の再検査費用は、上限10,000円まで会社が負担します（領収書の提出が必要）。",
 ]
 
 print(f"ナレッジベース件数: {len(knowledge_base)} 件")
-doc_embeddings = embed_model.encode(knowledge_base)
-print("XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX")
-print(doc_embeddings)
-print("XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX")
 
-def cosine_similarity(a, b):
-    return np.dot(a, b) / (np.linalg.norm(a) * np.linalg.norm(b))
+# 文書側は "passage: " を付けてエンコード。normalize_embeddings=True で単位ベクトル化。
+doc_embeddings = embed_model.encode(
+    [f"passage: {doc}" for doc in knowledge_base],
+    normalize_embeddings=True,
+)
+print(f"ベクトルの形状: {doc_embeddings.shape}")
 
-# 曖昧な口語の質問
+# 曖昧な口語の質問。クエリ側は "query: " を付ける。
 query = "家で仕事するときの手当ってもらえるの？いくら？"
-query_embedding = embed_model.encode(query)
+query_embedding = embed_model.encode(f"query: {query}", normalize_embeddings=True)
 
-# 全件の類似度スコアを計算
-scores = np.array([cosine_similarity(query_embedding, emb) for emb in doc_embeddings])
+# 正規化済みベクトルなので、内積 = コサイン類似度。行列演算で全件を一発計算。
+scores = doc_embeddings @ query_embedding
 
 # 上位3件を表示して、迷った候補を確認
 top3_indices = np.argsort(scores)[::-1][:3]
