@@ -1,3 +1,4 @@
 sentence-transformers>=3.0.0
 ollama>=0.3.0
 numpy>=1.26.0
+duckdb>=1.1.0

@@ -3,6 +3,9 @@
 ローカルだけで動く RAG（ベクトル検索 → LLM 生成）の実験場。
 依存インストールは devcontainer 起動時に実行される。
 
+- `main.py` … numpy で全件総当たり検索
+- `main_duckdb.py` … DuckDB VSS に永続化 + HNSW インデックスで検索
+
 ## 動作手順
 
 ```bash
@@ -13,5 +16,5 @@ ollama serve &
 ollama pull qwen2.5:0.5b
 
 # 3. 実行
-python main.py
+python main.py          # または python main_duckdb.py
 ```
