@@ -52,14 +52,18 @@ for rank, idx in enumerate(top3_indices, 1):
     print(f"{rank}位 (スコア: {scores[idx]:.4f}): {knowledge_base[idx]}")
 print("------------------------------\n")
 
-best_doc = knowledge_base[top3_indices[0]]
+# 検索で拾った上位3件をすべて LLM に渡す。
+# top1 だけだと正解が2〜3位のとき取りこぼす（記事の④再ランキング・文脈構成の失敗）。
+context = "\n".join(
+    f"- {knowledge_base[idx]}" for idx in top3_indices
+)
 
 prompt = f"""
 以下の[参考情報]だけをもとにして、[質問]に日本語で簡潔に回答してください。
 参考情報に書かれていないことは絶対に回答に含めないでください。
 
 [参考情報]
-{best_doc}
+{context}
 
 [質問]
 {query}
